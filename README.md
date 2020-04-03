@@ -1,4 +1,4 @@
-DnsProbe is a community tool built on top of `projectdiscovery/retryabledns` that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers
+DNSProbe is a community tool built on top of `[retryabledns](https://github.com/projectdiscovery/retryabledns)` that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers
 
 # Usage
 
@@ -19,7 +19,7 @@ This will display help for the tool. Here are all the switches it supports.
 # Installation Instructions
 ### From Source
 
-dnsprobe requires go1.13+ to install successfully. Run the following command to get the repo - 
+DNSProbe requires go1.13+ to install successfully. Run the following command to get the repo - 
 
 ```bash
 > go get -u -v github.com/projectdiscovery/dnsprobe/cmd
@@ -39,4 +39,4 @@ This will run the tool against domains in `domains.txt` and returns the results.
 
 # License
 
-DnsProbe is made with 🖤 by the [projectdiscovery](https://projectdiscovery.io) team.
+DNSProbe is made with 🖤 by the [projectdiscovery](https://projectdiscovery.io) team.
