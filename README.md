@@ -9,12 +9,12 @@ DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdisc
     - [From Binary](#from-binary)
     - [From Source](#from-source)
 - [Running dnsprobe](#running-dnsprobe)
-    - [1. Querying hosts with pipe input](#1-querying-host-for-A-record)
-    - [2. Querying hosts with file input](#2-Querying-host-for-CNAME-record)
+    - [1. Querying hosts with pipe input](#querying-host-for-A-record)
+    - [2. Querying hosts with file input](#querying-host-for-CNAME-record)
 
 - [License](#license)
 
- # Features
+# Features
 
 
 # Usage
