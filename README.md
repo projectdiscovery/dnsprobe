@@ -1,4 +1,4 @@
-DNSProbe is a community tool built on top of [retryabledns](https://github.com/projectdiscovery/retryabledns) that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers
+DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdiscovery/retryabledns) that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers
 
 # Usage
 
