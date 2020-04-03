@@ -1,4 +1,21 @@
-DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdiscovery/retryabledns) that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers
+DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdiscovery/retryabledns) that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers.
+
+# Resources
+- [Resources](#resources)
+- [Features](#features)
+- [Usage](#usage)
+- [Installation Instructions](#installation-instructions)
+  - [Direct Installation](#direct-installation)
+    - [From Binary](#from-binary)
+    - [From Source](#from-source)
+- [Running dnsprobe](#running-dnsprobe)
+    - [1. Querying hosts with pipe input](#1-querying-host-for-A-record)
+    - [2. Querying hosts with file input](#2-Querying-host-for-CNAME-record)
+
+- [License](#license)
+
+ # Features
+
 
 # Usage
 
@@ -50,9 +67,9 @@ pages.bugcrowd.com 104.20.61.51
 ### Querying host for CNAME record
 
 ```bash
-> cat domains.txt | dnsprobe -r CNAME
+> dnsprobe -l domains.txt -r CNAME
 
-root@test:~# cat bc.txt | dnsprobe -r CNAME
+root@test:~# dnsprobe -l bc.txt -r CNAME
 forum.bugcrowd.com bugcrowd.hosted-by-discourse.com.
 collateral.bugcrowd.com bugcrowd.outrch.com.
 go.bugcrowd.com mkto-ab270028.com.
