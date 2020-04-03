@@ -23,7 +23,7 @@ DNSProbe requires go1.13+ to install successfully. Run the following command to 
 
 ```bash
 > go get -u -v github.com/projectdiscovery/dnsprobe
-> cd $HOME/go/github.com/projectdiscovery/dnsprobe # your go location
+> cd $HOME/go/src/github.com/projectdiscovery/dnsprobe # your go location
 > go build .
 ```
 
