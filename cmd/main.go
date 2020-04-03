@@ -14,11 +14,11 @@ import (
 
 var (
 	resolvers   = flag.String("s", "", "List of resolvers")
-	hosts       = flag.String("l", "", "List of urls to check for stuff")
+	hosts       = flag.String("l", "", "List of dns domains")
 	requestType = flag.String("r", "A", "Request Type A, NS, CNAME, SOA, PTR, MX, TXT, AAAA")
 	concurrency = flag.Int("t", 250, "Number of concurrent requests to make")
 	retries     = flag.Int("c", 1, "Max dns retries")
-	verbose     = flag.Bool("v", false, "Output full A response")
+	verbose     = flag.Bool("v", false, "Output full responses")
 )
 
 func main() {
