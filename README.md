@@ -60,8 +60,6 @@ blog.bugcrowd.com 104.20.5.239
 www.bugcrowd.com 104.20.5.239
 www.bugcrowd.com 104.20.4.239
 events.bugcrowd.com 54.84.134.174
-pages.bugcrowd.com 104.20.60.51
-pages.bugcrowd.com 104.20.61.51
 ```
 
 ### Querying host for CNAME record
