@@ -27,12 +27,36 @@ DNSProbe requires go1.13+ to install successfully. Run the following command to 
 
 In order to update the tool, you can use -u flag with `go get` command.
 
-### Resolving Domains
+### Querying host for A record
 
 To query a list of domains, you can pass the list via stdin.
 
 ```bash
 > cat domains.txt | dnsprobe
+
+root@test:~# cat bc.txt | dnsprobe
+bounce.bugcrowd.com 192.28.152.174
+blog.bugcrowd.com 104.20.4.239
+blog.bugcrowd.com 104.20.5.239
+www.bugcrowd.com 104.20.5.239
+www.bugcrowd.com 104.20.4.239
+events.bugcrowd.com 54.84.134.174
+pages.bugcrowd.com 104.20.60.51
+pages.bugcrowd.com 104.20.61.51
+```
+
+### Querying host for CNAME record
+
+```bash
+> cat domains.txt | dnsprobe -r CNAME
+
+root@test:~# cat bc.txt | dnsprobe -r CNAME
+forum.bugcrowd.com bugcrowd.hosted-by-discourse.com.
+collateral.bugcrowd.com bugcrowd.outrch.com.
+go.bugcrowd.com mkto-ab270028.com.
+ww2.bugcrowd.com bugcrowdinc.mktoweb.com.
+researcherdocs.bugcrowd.com ssl.readmessl.com.
+docs.bugcrowd.com ssl.readmessl.com.
 ```
 
 This will run the tool against domains in `domains.txt` and returns the results. The tool uses the resolvers specified with -s option to perform the queries or default system resolvers.
