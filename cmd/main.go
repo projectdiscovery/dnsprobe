@@ -8,7 +8,7 @@ import (
 	"os"
 	"strings"
 
-	dnsprobe "github.com/projectdiscovery/dns-probe"
+	dnsprobe "github.com/projectdiscovery/dnsprobe"
 	"github.com/remeh/sizedwaitgroup"
 )
 

@@ -22,7 +22,7 @@ This will display help for the tool. Here are all the switches it supports.
 dnsprobe requires go1.13+ to install successfully. Run the following command to get the repo - 
 
 ```bash
-> get -u -v github.com/projectdiscovery/dnsprobe/cmd
+> go get -u -v github.com/projectdiscovery/dnsprobe/cmd
 ```
 
 In order to update the tool, you can use -u flag with `go get` command.
