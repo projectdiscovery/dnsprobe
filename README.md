@@ -78,6 +78,21 @@ docs.bugcrowd.com ssl.readmessl.com.
 
 This will run the tool against domains in `domains.txt` and returns the results. The tool uses the resolvers specified with -s option to perform the queries or default system resolvers.
 
+### Querying CNAME records on the Subfinder output
+
+```bash 
+> subfinder -d bugcrowd.com -silent | dnsprobe -r cname
+
+root@b0x:~# subfinder -d bugcrowd.com -silent | dnsprobe -r cname
+forum.bugcrowd.com bugcrowd.hosted-by-discourse.com.
+docs.bugcrowd.com ssl.readmessl.com.
+go.bugcrowd.com mkto-ab270028.com.
+ww2.bugcrowd.com bugcrowdinc.mktoweb.com.
+researcherdocs.bugcrowd.com ssl.readmessl.com.
+collateral.bugcrowd.com bugcrowd.outrch.com.
+proxilate.bugcrowd.com proxilate.a.bugcrowd.com.
+```
+
 # License
 
 DNSProbe is made with 🖤 by the [projectdiscovery](https://projectdiscovery.io) team.
