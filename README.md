@@ -19,8 +19,6 @@ DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdisc
     - [Querying host for CNAME record](#querying-host-for-cname-record)
 - [License](#license)
 
-- [License](#license)
-
 # Features
 
 
