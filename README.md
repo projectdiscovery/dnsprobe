@@ -35,15 +35,11 @@ This will display help for the tool. Here are all the switches it supports.
 # Installation Instructions
 ### From Source
 
-DNSProbe requires go1.13+ to install successfully. Run the following command to get the repo - 
+nuclei requires go1.13+ to install successfully. Run the following command to get the repo -
 
-```bash
-> go get -u -v github.com/projectdiscovery/dnsprobe
-> cd $HOME/go/src/github.com/projectdiscovery/dnsprobe # your go location
-> go build .
-```
+> GO111MODULE=on go get -u -v github.com/projectdiscovery/dnsprobe
 
-In order to update the tool, you can use -u flag with `go get` command.
+In order to update the tool, you can use -u flag with go get command.
 
 ### Querying host for A record
 
