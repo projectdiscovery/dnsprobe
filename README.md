@@ -1,3 +1,12 @@
+<h1 align="left">
+  <img src="static/dnsprobe-logo.png" alt="dnsprobe" width="200px"></a>
+  <br>
+</h1>
+
+[![License](https://img.shields.io/badge/license-MIT-_red.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/projectdiscovery/dnsprobe)](https://goreportcard.com/report/github.com/projectdiscovery/dnsprobe)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/projectdiscovery/dnsprobe/issues)
+
 DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdiscovery/retryabledns) that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers.
 
 # Resources
@@ -5,12 +14,10 @@ DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdisc
 - [Features](#features)
 - [Usage](#usage)
 - [Installation Instructions](#installation-instructions)
-  - [Direct Installation](#direct-installation)
-    - [From Binary](#from-binary)
     - [From Source](#from-source)
-- [Running dnsprobe](#running-dnsprobe)
-    - [1. Querying hosts with pipe input](#querying-host-for-A-record)
-    - [2. Querying hosts with file input](#querying-host-for-CNAME-record)
+    - [Querying host for A record](#querying-host-for-a-record)
+    - [Querying host for CNAME record](#querying-host-for-cname-record)
+- [License](#license)
 
 - [License](#license)
 
@@ -24,27 +31,24 @@ dnsprobe -h
 ```
 This will display help for the tool. Here are all the switches it supports.
 
-| Flag           | Description                                                        | Example                   |
-|----------------|--------------------------------------------------------------------|---------------------------|
-| -c             | Max dns retries (default 1)                                        | dnsprobe -c 5             |
-| -l             | List of dns domains                                                | dnsprobe -l domains.txt   |
-| -r             | Request Type A, NS, CNAME, SOA, PTR, MX, TXT, AAAA (default "A")   | dnsprobe -r A             |
-| -s             | List of resolvers                                                  | dnsprobe -r resolvers.txt |
-| -t             | Number of concurrent requests to make (default 250)                | dnsprobe -t 500           |
-| -v             | Output full responses                                              | dnsprobe -v               |
+| Flag           | Description                                                        | Example                                     |
+|----------------|------------------------------------------------------------------------------------------------------------------|---------------------------|
+| -c             | Max dns retries (default 1)                                                                                      | dnsprobe -c 5             |
+| -l             | List of dns domains (optional)                                                                                              | dnsprobe -l domains.txt                     |
+| -r             | Request Type A, NS, CNAME, SOA, PTR, MX, TXT, AAAA (default "A")                                                 | dnsprobe -r A                               |
+| -s             | List of resolvers (optional)                                                                                                | dnsprobe -r resolvers.txt                   |
+| -t             | Number of concurrent requests to make (default 250)                                                              | dnsprobe -t 500                             |
+| -f             | Output type: ip, domain, response, simple (domain + ip, default), full (domain + response), json (domain + raw response)  | dnsprobe -f json           |
+| -o             | Output file (optional)                                                                                                      | dnsprobe -o result.txt                                |
 
 # Installation Instructions
 ### From Source
 
-DNSProbe requires go1.13+ to install successfully. Run the following command to get the repo - 
+nuclei requires go1.13+ to install successfully. Run the following command to get the repo -
 
-```bash
-> go get -u -v github.com/projectdiscovery/dnsprobe
-> cd $HOME/go/src/github.com/projectdiscovery/dnsprobe # your go location
-> go build .
-```
+> GO111MODULE=on go get -u -v github.com/projectdiscovery/dnsprobe
 
-In order to update the tool, you can use -u flag with `go get` command.
+In order to update the tool, you can use -u flag with go get command.
 
 ### Querying host for A record
 
