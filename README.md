@@ -1,3 +1,12 @@
+<h1 align="left">
+  <img src="static/dnsprobe-logo.png" alt="dnsprobe" width="200px"></a>
+  <br>
+</h1>
+
+[![License](https://img.shields.io/badge/license-MIT-_red.svg)](https://opensource.org/licenses/MIT)
+[![Go Report Card](https://goreportcard.com/badge/github.com/projectdiscovery/dnsprobe)](https://goreportcard.com/report/github.com/projectdiscovery/dnsprobe)
+[![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/projectdiscovery/dnsprobe/issues)
+
 DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdiscovery/retryabledns) that allows you to perform multiple dns queries of your choice with a list of user supplied resolvers.
 
 # Resources
