@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync"
 
 	dnsprobe "github.com/projectdiscovery/dnsprobe/lib"
 	"github.com/projectdiscovery/gologger"
@@ -61,6 +62,7 @@ func main() {
 	}
 
 	wg := sizedwaitgroup.New(*concurrency)
+	var wgwriter sync.WaitGroup
 
 	// process file if specified
 	var f *os.File
@@ -95,6 +97,16 @@ func main() {
 	w := bufio.NewWriter(foutput)
 	defer w.Flush()
 
+	// writer worker
+	wgwriter.Add(1)
+	writequeue := make(chan string)
+	go func() {
+		defer wgwriter.Done()
+		for item := range writequeue {
+			w.WriteString(item)
+		}
+	}()
+
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		wg.Add()
@@ -108,19 +120,19 @@ func main() {
 					ip := tokens[len(tokens)-1]
 					switch *outputFormat {
 					case "ip":
-						w.WriteString(fmt.Sprintln(ip))
+						writequeue <- fmt.Sprintln(ip)
 					case "domain":
-						w.WriteString(fmt.Sprintln(domain))
+						writequeue <- fmt.Sprintln(domain)
 					case "simple":
-						w.WriteString(fmt.Sprintf("%s %s\n", domain, ip))
+						writequeue <- fmt.Sprintf("%s %s\n", domain, ip)
 					case "response":
-						w.WriteString(fmt.Sprintln(r))
+						writequeue <- fmt.Sprintln(r)
 					case "full":
-						w.WriteString(fmt.Sprintf("%s %s\n", domain, r))
+						writequeue <- fmt.Sprintf("%s %s\n", domain, r)
 					case "json":
 						jsonl := JsonLine{Domain: domain, Response: r, IP: ip}
 						if jsonls, err := json.Marshal(jsonl); err == nil {
-							w.WriteString(fmt.Sprintln(string(jsonls)))
+							writequeue <- fmt.Sprintln(string(jsonls))
 						}
 					}
 
@@ -135,6 +147,8 @@ func main() {
 	}
 
 	wg.Wait()
+	close(writequeue)
+	wgwriter.Wait()
 }
 
 func linesInFile(fileName string) ([]string, error) {
