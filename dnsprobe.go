@@ -5,11 +5,11 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 
 	dnsprobe "github.com/projectdiscovery/dnsprobe/lib"
+	"github.com/projectdiscovery/gologger"
 	"github.com/remeh/sizedwaitgroup"
 )
 
@@ -30,6 +30,10 @@ type JsonLine struct {
 }
 
 func main() {
+
+	// show banner
+	showBanner()
+
 	flag.Parse()
 
 	options := dnsprobe.DefaultOptions
@@ -38,14 +42,14 @@ func main() {
 	if *resolvers != "" {
 		rs, err := linesInFile(*resolvers)
 		if err != nil {
-			log.Fatalf("Error: %s", err)
+			gologger.Fatalf("%s\n", err)
 		}
 		options.BaseResolvers = append(options.BaseResolvers, rs...)
 	}
 
 	questionType, err := dnsprobe.StringToRequestType(*requestType)
 	if err != nil {
-		log.Fatalf("Error: %s", err)
+		gologger.Fatalf("%s\n", err)
 	}
 
 	options.QuestionType = questionType
@@ -53,7 +57,7 @@ func main() {
 	var dnsProbe *dnsprobe.DnsProbe
 	dnsProbe, err = dnsprobe.New(options)
 	if err != nil {
-		log.Fatalf("Error: %s", err)
+		gologger.Fatalf("%s\n", err)
 	}
 
 	wg := sizedwaitgroup.New(*concurrency)
@@ -66,14 +70,14 @@ func main() {
 		var err error
 		f, err = os.OpenFile(*hosts, os.O_RDONLY, os.ModePerm)
 		if err != nil {
-			log.Fatalf("open file error: %s", err)
+			gologger.Fatalf("%s\n", err)
 			return
 		}
 		defer f.Close()
 	} else if (stat.Mode() & os.ModeCharDevice) == 0 {
 		f = os.Stdin
 	} else {
-		log.Fatalf("hosts file or stdin not provided")
+		gologger.Fatalf("hosts file or stdin not provided")
 	}
 
 	// setup output
@@ -81,7 +85,7 @@ func main() {
 	if *outputFile != "" {
 		foutput, err = os.OpenFile(*outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
 		if err != nil {
-			log.Fatalf("open file error: %s", err)
+			gologger.Fatalf("%s\n", err)
 		}
 	} else {
 		foutput = os.Stdout
@@ -126,7 +130,7 @@ func main() {
 
 	}
 	if err := sc.Err(); err != nil {
-		log.Printf("scan file error: %v", err)
+		gologger.Fatalf("%s\n", err)
 		return
 	}
 
