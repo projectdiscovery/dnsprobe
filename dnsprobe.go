@@ -19,7 +19,7 @@ var (
 	requestType  = flag.String("r", "A", "Request Type A, NS, CNAME, SOA, PTR, MX, TXT, AAAA")
 	concurrency  = flag.Int("t", 250, "Number of concurrent requests to make")
 	retries      = flag.Int("c", 1, "Max dns retries")
-	outputFormat = flag.String("f", "full", "Output type: ip, domain, response, simple (domain + ip), full (domain + response), json (domain + raw response)")
+	outputFormat = flag.String("f", "simple", "Output type: ip, domain, response, simple (domain + ip), full (domain + response), json (domain + raw response)")
 	outputFile   = flag.String("o", "", "Output file")
 )
 
