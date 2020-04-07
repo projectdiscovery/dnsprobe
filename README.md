@@ -36,7 +36,7 @@ This will display help for the tool. Here are all the switches it supports.
 | -c             | Max dns retries (default 1)                                                                                      | dnsprobe -c 5             |
 | -l             | List of dns domains (optional)                                                                                              | dnsprobe -l domains.txt                     |
 | -r             | Request Type A, NS, CNAME, SOA, PTR, MX, TXT, AAAA (default "A")                                                 | dnsprobe -r A                               |
-| -s             | List of resolvers (optional)                                                                                                | dnsprobe -r resolvers.txt                   |
+| -s             | List of resolvers (optional)                                                                                                | dnsprobe -s resolvers.txt                   |
 | -t             | Number of concurrent requests to make (default 250)                                                              | dnsprobe -t 500                             |
 | -f             | Output type: ip, domain, response, simple (domain + ip, default), full (domain + response), json (domain + raw response)  | dnsprobe -f json           |
 | -o             | Output file (optional)                                                                                                      | dnsprobe -o result.txt                                |
@@ -44,7 +44,7 @@ This will display help for the tool. Here are all the switches it supports.
 # Installation Instructions
 ### From Source
 
-nuclei requires go1.13+ to install successfully. Run the following command to get the repo -
+dnsprobe requires go1.13+ to install successfully. Run the following command to get the repo -
 
 > GO111MODULE=on go get -u -v github.com/projectdiscovery/dnsprobe
 
