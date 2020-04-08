@@ -21,6 +21,13 @@ DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdisc
 
 # Features
 
+<h1 align="left">
+  <img src="static/dnsprobe-run.png" alt="dnsprobe" width="700px"></a>
+  <br>
+</h1>
+
+ - Simple and Handy utility to query DNS records. 
+ 
 
 # Usage
 
