@@ -31,10 +31,7 @@ type JsonLine struct {
 }
 
 func main() {
-
-	// show banner
 	showBanner()
-
 	flag.Parse()
 
 	options := dnsprobe.DefaultOptions
@@ -67,7 +64,6 @@ func main() {
 	// process file if specified
 	var f *os.File
 	stat, _ := os.Stdin.Stat()
-	// process file if specified
 	if *hosts != "" {
 		var err error
 		f, err = os.OpenFile(*hosts, os.O_RDONLY, os.ModePerm)
@@ -149,19 +145,4 @@ func main() {
 	wg.Wait()
 	close(writequeue)
 	wgwriter.Wait()
-}
-
-func linesInFile(fileName string) ([]string, error) {
-	result := []string{}
-	f, err := os.Open(fileName)
-	if err != nil {
-		return result, err
-	}
-	defer f.Close()
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		result = append(result, line)
-	}
-	return result, nil
 }
