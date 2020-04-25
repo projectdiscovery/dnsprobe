@@ -22,6 +22,8 @@ var (
 	retries      = flag.Int("c", 1, "Max dns retries")
 	outputFormat = flag.String("f", "simple", "Output type: ip, domain, response, simple (domain + ip), full (domain + response), json (domain + raw response)")
 	outputFile   = flag.String("o", "", "Output file")
+	raw          = flag.Bool("raw", false, "Operates like dig")
+	silent       = flag.Bool("silent", false, "Silent output")
 )
 
 type JsonLine struct {
@@ -31,8 +33,14 @@ type JsonLine struct {
 }
 
 func main() {
-	showBanner()
+
 	flag.Parse()
+
+	if *silent {
+		gologger.MaxLevel = gologger.Silent
+	}
+
+	showBanner()
 
 	options := dnsprobe.DefaultOptions
 	options.MaxRetries = *retries
@@ -110,7 +118,15 @@ func main() {
 		go func(domain string) {
 			defer wg.Done()
 
-			if rs, err := dnsProbe.LookupRaw(domain); err == nil {
+			if isURL(domain) {
+				domain = extractDomain(domain)
+			}
+
+			if rs, rawResp, err := dnsProbe.LookupRaw(domain); err == nil {
+				if *raw {
+					writequeue <- "\n" + rawResp
+					return
+				}
 				for _, r := range rs {
 					tokens := strings.Split(r, "\t")
 					ip := tokens[len(tokens)-1]
@@ -131,7 +147,6 @@ func main() {
 							writequeue <- fmt.Sprintln(string(jsonls))
 						}
 					}
-
 				}
 			}
 		}(sc.Text())

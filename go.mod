@@ -5,6 +5,6 @@ go 1.14
 require (
 	github.com/miekg/dns v1.1.29
 	github.com/projectdiscovery/gologger v1.0.0
-	github.com/projectdiscovery/retryabledns v1.0.2
+	github.com/projectdiscovery/retryabledns v1.0.3
 	github.com/remeh/sizedwaitgroup v1.0.0
 )
