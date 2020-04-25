@@ -17,6 +17,7 @@ DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdisc
     - [From Source](#from-source)
     - [Querying host for A record](#querying-host-for-a-record)
     - [Querying host for CNAME record](#querying-host-for-cname-record)
+    - [Querying CNAME records on the Subfinder output](#querying-cname-records-on-the-subfinder-output)
 - [License](#license)
 
 # Features
@@ -45,6 +46,8 @@ This will display help for the tool. Here are all the switches it supports.
 | -t             | Number of concurrent requests to make (default 250)                                                              | dnsprobe -t 500                             |
 | -f             | Output type: ip, domain, response, simple (domain + ip, default), full (domain + response), json (domain + raw response)  | dnsprobe -f json           |
 | -o             | Output file (optional)                                                                                                      | dnsprobe -o result.txt                                |
+| -raw           | Output the full response ignoring output type                                                                  | dnsprobe -raw               |
+| -silent        | Show only found results in output                     | dnsprobe -silent             |
 
 # Installation Instructions
 ### From Source
@@ -59,7 +62,7 @@ In order to update the tool, you can use -u flag with go get command.
 
 ### Querying host for A record
 
-To query a list of domains, you can pass the list via stdin.
+To query a list of domains, you can pass the list via stdin (it also accepts full URLS, in this case the domain is extracted automatically).
 
 ```bash
 > cat domains.txt | dnsprobe

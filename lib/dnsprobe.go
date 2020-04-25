@@ -3,13 +3,13 @@ package dnsprobe
 import (
 	"net"
 
-	miekdns "github.com/miekg/dns"
-	dns "github.com/projectdiscovery/retryabledns"
+	miekgdns "github.com/miekg/dns"
+	retryabledns "github.com/projectdiscovery/retryabledns"
 )
 
 // DnsProbe is structure to perform dns lookups
 type DnsProbe struct {
-	dnsClient    *dns.Client
+	dnsClient    *retryabledns.Client
 	questionType uint16
 }
 
@@ -24,7 +24,7 @@ type Options struct {
 var DefaultOptions = Options{
 	BaseResolvers: DefaultResolvers,
 	MaxRetries:    5,
-	QuestionType:  miekdns.TypeA,
+	QuestionType:  miekgdns.TypeA,
 }
 
 // DefaultResolvers contains the list of resolvers known to be trusted.
@@ -38,7 +38,7 @@ var DefaultResolvers = []string{
 
 // New creates a dns resolver
 func New(options Options) (*DnsProbe, error) {
-	dnsClient, err := dns.New(options.BaseResolvers, options.MaxRetries)
+	dnsClient, err := retryabledns.New(options.BaseResolvers, options.MaxRetries)
 	if err != nil {
 		return nil, err
 	}
@@ -61,9 +61,9 @@ func (d *DnsProbe) Lookup(hostname string) ([]string, error) {
 }
 
 // LookupRaw performs a DNS question of a specified type and returns raw responses
-func (d *DnsProbe) LookupRaw(hostname string) ([]string, error) {
+func (d *DnsProbe) LookupRaw(hostname string) ([]string, string, error) {
 	if ip := net.ParseIP(hostname); ip != nil {
-		return []string{hostname}, nil
+		return []string{hostname}, "", nil
 	}
 
 	return d.dnsClient.ResolveRaw(hostname, d.questionType)
