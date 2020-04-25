@@ -98,16 +98,26 @@ func main() {
 	}
 	defer foutput.Close()
 
-	w := bufio.NewWriter(foutput)
-	defer w.Flush()
-
 	// writer worker
 	wgwriter.Add(1)
 	writequeue := make(chan string)
 	go func() {
 		defer wgwriter.Done()
+
+		// uses a buffer to write to file
+		if *outputFile != "" {
+			w := bufio.NewWriter(foutput)
+			defer w.Flush()
+
+			for item := range writequeue {
+				w.WriteString(item)
+			}
+			return
+		}
+
+		// otherwise writes sequentially to stdout
 		for item := range writequeue {
-			w.WriteString(item)
+			fmt.Fprintf(foutput, "%s", item)
 		}
 	}()
 
