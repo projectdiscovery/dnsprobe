@@ -43,7 +43,7 @@ func New(options Options) (*DnsProbe, error) {
 		return nil, err
 	}
 
-	return &DnsProbe{dnsClient: dnsClient, questionType: options.QuestionType}, nil
+	return &DnsProbe{dnsClient: dnsClient, questionType: options.QuestionType}
 }
 
 // Lookup performs a DNS A question and returns corresponding IPs
