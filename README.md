@@ -15,6 +15,7 @@ DNSProbe is a tool built on top of [retryabledns](https://github.com/projectdisc
 - [Usage](#usage)
 - [Installation Instructions](#installation-instructions)
     - [From Source](#from-source)
+    - [Running in a Docker Container](#running-in-a-docker-container)
     - [Querying host for A record](#querying-host-for-a-record)
     - [Querying host for CNAME record](#querying-host-for-cname-record)
     - [Querying CNAME records on the Subfinder output](#querying-cname-records-on-the-subfinder-output)
@@ -59,6 +60,24 @@ GO111MODULE=on go get -u -v github.com/projectdiscovery/dnsprobe
 ```
 
 In order to update the tool, you can use -u flag with go get command.
+
+### Running in a Docker Container
+
+- Clone the repo using `git clone https://github.com/projectdiscovery/dnsprobe.git`
+- Build your docker container
+```bash
+> docker build -t projectdiscovery/dnsprobe .
+```
+
+- After building the container using either way, run the following - 
+```bash
+> docker run -it projectdiscovery/dnsprobe
+```
+
+For example, to query a list of domains for CNAME record and output the results to your host file system:
+```bash
+> cat domains.txt | docker run -i projectdiscovery/dnsprobe -r CNAME > bugcrowd.txt
+```
 
 ### Querying host for A record
 
