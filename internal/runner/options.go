@@ -18,6 +18,8 @@ type Options struct {
 	OutputFile   string
 	Raw          bool
 	Silent       bool
+	Verbose      bool
+	Version      bool
 }
 
 // ParseOptions parses the command line options for application
@@ -33,6 +35,8 @@ func ParseOptions() *Options {
 	flag.StringVar(&options.OutputFile, "o", "", "Output file")
 	flag.BoolVar(&options.Raw, "raw", false, "Operates like dig")
 	flag.BoolVar(&options.Silent, "silent", false, "Silent output")
+	flag.BoolVar(&options.Verbose, "verbose", false, "Verbose output")
+	flag.BoolVar(&options.Version, "version", false, "Version")
 
 	flag.Parse()
 
@@ -60,12 +64,6 @@ func (options *Options) configureOutput() {
 	// If the user desires verbose output, show verbose output
 	if options.Verbose {
 		gologger.MaxLevel = gologger.Verbose
-	}
-	if options.Debug {
-		gologger.MaxLevel = gologger.Debug
-	}
-	if options.NoColor {
-		gologger.UseColors = false
 	}
 	if options.Silent {
 		gologger.MaxLevel = gologger.Silent
