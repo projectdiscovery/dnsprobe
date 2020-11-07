@@ -1,18 +1,17 @@
-package main
+package runner
 
 import "github.com/projectdiscovery/gologger"
 
 const banner = `
-       __                            __       
-  ____/ /___  _________  _________  / /_  ___ 
- / __  / __ \/ ___/ __ \/ ___/ __ \/ __ \/ _ \
-/ /_/ / / / (__  ) /_/ / /  / /_/ / /_/ /  __/
-\__,_/_/ /_/____/ .___/_/   \____/_.___/\___/ 
-               /_/                            										  
+     __            
+ ___/ /__  _____ __
+/ _  / _ \(_-<\ \ /
+\_,_/_//_/___/_\_\ 
+																					 
 `
 
-// Version is the current version of dnsprobe
-const Version = `1.0.3`
+// Version is the current version of dnsx
+const Version = `0.0.1`
 
 // showBanner is used to show the banner to the user
 func showBanner() {

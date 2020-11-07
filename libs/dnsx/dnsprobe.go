@@ -1,4 +1,4 @@
-package dnsprobe
+package dnsx
 
 import (
 	"net"
@@ -7,8 +7,8 @@ import (
 	retryabledns "github.com/projectdiscovery/retryabledns"
 )
 
-// DnsProbe is structure to perform dns lookups
-type DnsProbe struct {
+// DNSX is structure to perform dns lookups
+type DNSX struct {
 	dnsClient    *retryabledns.Client
 	questionType uint16
 }
@@ -37,14 +37,14 @@ var DefaultResolvers = []string{
 }
 
 // New creates a dns resolver
-func New(options Options) (*DnsProbe, error) {
+func New(options Options) (*DNSX, error) {
 	dnsClient := retryabledns.New(options.BaseResolvers, options.MaxRetries)
 
-	return &DnsProbe{dnsClient: dnsClient, questionType: options.QuestionType}, nil
+	return &DNSX{dnsClient: dnsClient, questionType: options.QuestionType}, nil
 }
 
 // Lookup performs a DNS A question and returns corresponding IPs
-func (d *DnsProbe) Lookup(hostname string) ([]string, error) {
+func (d *DNSX) Lookup(hostname string) ([]string, error) {
 	if ip := net.ParseIP(hostname); ip != nil {
 		return []string{hostname}, nil
 	}
@@ -58,7 +58,7 @@ func (d *DnsProbe) Lookup(hostname string) ([]string, error) {
 }
 
 // LookupRaw performs a DNS question of a specified type and returns raw responses
-func (d *DnsProbe) LookupRaw(hostname string) ([]string, string, error) {
+func (d *DNSX) LookupRaw(hostname string) ([]string, string, error) {
 	if ip := net.ParseIP(hostname); ip != nil {
 		return []string{hostname}, "", nil
 	}

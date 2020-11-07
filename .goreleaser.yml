@@ -1,6 +1,6 @@
 builds:
-    - binary: dnsprobe
-      main: dnsprobe.go
+    - binary: dnsx
+      main: cmd/dnsx/dnsx.go
       goos:
         - linux
         - windows
