@@ -9,6 +9,7 @@ import (
 	"github.com/miekg/dns"
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
 	"github.com/projectdiscovery/gologger"
+	"go.uber.org/ratelimit"
 )
 
 type JsonLine struct {
@@ -25,6 +26,7 @@ type Runner struct {
 	wgresolveworkers *sync.WaitGroup
 	workerchan       chan string
 	outputchan       chan string
+	limiter          ratelimit.Limiter
 }
 
 func New(options *Options) (*Runner, error) {
@@ -74,6 +76,11 @@ func New(options *Options) (*Runner, error) {
 		return nil, err
 	}
 
+	limiter := ratelimit.NewUnlimited()
+	if options.RateLimit > 0 {
+		limiter = ratelimit.New(options.RateLimit)
+	}
+
 	r := Runner{
 		options:          options,
 		dnsx:             dnsX,
@@ -81,6 +88,7 @@ func New(options *Options) (*Runner, error) {
 		wgresolveworkers: &sync.WaitGroup{},
 		workerchan:       make(chan string),
 		outputchan:       make(chan string),
+		limiter:          limiter,
 	}
 
 	return &r, nil
@@ -173,7 +181,7 @@ func (r *Runner) worker() {
 		if isURL(domain) {
 			domain = extractDomain(domain)
 		}
-
+		r.limiter.Take()
 		if dnsData, err := r.dnsx.QueryMultiple(domain); err == nil {
 			if r.options.Raw {
 				r.outputchan <- dnsData.Raw
@@ -219,7 +227,9 @@ func (r *Runner) outputRecordType(domain string, items []string) {
 		} else if r.options.Response {
 			r.outputchan <- domain + " [" + item + "]"
 		} else {
-			r.outputchan <- item
+			// just prints out the domain if it has a record type and exit
+			r.outputchan <- domain
+			break
 		}
 	}
 }

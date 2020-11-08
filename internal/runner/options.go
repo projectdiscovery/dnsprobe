@@ -41,7 +41,7 @@ func ParseOptions() *Options {
 	flag.StringVar(&options.RequestType, "r", "A", "Request Type A, NS, CNAME, SOA, PTR, MX, TXT, AAAA")
 	flag.IntVar(&options.Threads, "t", 250, "Number of concurrent requests to make")
 	flag.IntVar(&options.Retries, "c", 1, "Max dns retries")
-	flag.IntVar(&options.RateLimit, "rate-limit", 1000, "Max Requests/second")
+	flag.IntVar(&options.RateLimit, "rate-limit", -1, "Max Requests/second")
 	flag.StringVar(&options.OutputFormat, "f", "", "Output type: ip, domain, response, simple (domain + ip), full (domain + response), json (domain + raw response)")
 	flag.StringVar(&options.OutputFile, "o", "", "Output file")
 	flag.BoolVar(&options.Raw, "raw", false, "Operates like dig")
