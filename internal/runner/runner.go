@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/miekg/dns"
@@ -34,11 +35,22 @@ func New(options *Options) (*Runner, error) {
 	dnsxOptions.MaxRetries = options.Retries
 
 	if options.Resolvers != "" {
-		rs, err := linesInFile(options.Resolvers)
-		if err != nil {
-			gologger.Fatalf("%s\n", err)
+		dnsxOptions.BaseResolvers = []string{}
+		// If it's a file load resolvers from it
+		if fileExists(options.Resolvers) {
+			rs, err := linesInFile(options.Resolvers)
+			if err != nil {
+				gologger.Fatalf("%s\n", err)
+			}
+			for _, rr := range rs {
+				dnsxOptions.BaseResolvers = append(dnsxOptions.BaseResolvers, prepareResolver(rr))
+			}
+		} else {
+			// otherwise gets comma separated ones
+			for _, rr := range strings.Split(options.Resolvers, ",") {
+				dnsxOptions.BaseResolvers = append(dnsxOptions.BaseResolvers, prepareResolver(rr))
+			}
 		}
-		dnsxOptions.BaseResolvers = append(dnsxOptions.BaseResolvers, rs...)
 	}
 
 	var questionTypes []uint16
@@ -182,7 +194,8 @@ func (r *Runner) worker() {
 			domain = extractDomain(domain)
 		}
 		r.limiter.Take()
-		if dnsData, err := r.dnsx.QueryMultiple(domain); err == nil {
+		dnsData, err := r.dnsx.QueryMultiple(domain)
+		if err == nil {
 			if r.options.Raw {
 				r.outputchan <- dnsData.Raw
 				continue

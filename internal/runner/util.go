@@ -4,7 +4,16 @@ import (
 	"bufio"
 	"net/url"
 	"os"
+	"strings"
 )
+
+func fileExists(fileName string) bool {
+	info, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
+}
 
 func linesInFile(fileName string) ([]string, error) {
 	result := []string{}
@@ -43,4 +52,12 @@ func extractDomain(URL string) string {
 	}
 
 	return u.Hostname()
+}
+
+func prepareResolver(resolver string) string {
+	resolver = strings.TrimSpace(resolver)
+	if !strings.Contains(resolver, ":") {
+		resolver += ":53"
+	}
+	return resolver
 }
