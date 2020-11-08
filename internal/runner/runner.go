@@ -10,7 +10,6 @@ import (
 
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
 	"github.com/projectdiscovery/gologger"
-	"github.com/remeh/sizedwaitgroup"
 )
 
 type JsonLine struct {
@@ -21,8 +20,12 @@ type JsonLine struct {
 
 // Runner is a client for running the enumeration process.
 type Runner struct {
-	options *Options
-	dnsx    *dnsx.DNSX
+	options          *Options
+	dnsx             *dnsx.DNSX
+	wgoutputworker   *sync.WaitGroup
+	wgresolveworkers *sync.WaitGroup
+	workerchan       chan string
+	outputchan       chan string
 }
 
 func New(options *Options) (*Runner, error) {
@@ -48,13 +51,19 @@ func New(options *Options) (*Runner, error) {
 		return nil, err
 	}
 
-	return &Runner{options: options, dnsx: dnsX}, nil
+	r := Runner{
+		options:          options,
+		dnsx:             dnsX,
+		wgoutputworker:   &sync.WaitGroup{},
+		wgresolveworkers: &sync.WaitGroup{},
+		workerchan:       make(chan string),
+		outputchan:       make(chan string),
+	}
+
+	return &r, nil
 }
 
 func (r *Runner) Run() error {
-	wg := sizedwaitgroup.New(r.options.Threads)
-	var wgwriter sync.WaitGroup
-
 	// process file if specified
 	var f *os.File
 	stat, _ := os.Stdin.Stat()
@@ -71,92 +80,105 @@ func (r *Runner) Run() error {
 		return fmt.Errorf("hosts file or stdin not provided")
 	}
 
+	r.startWorkers()
+
+	sc := bufio.NewScanner(f)
+	for sc.Scan() {
+		r.workerchan <- sc.Text()
+	}
+
+	close(r.workerchan)
+
+	r.wgresolveworkers.Wait()
+
+	close(r.outputchan)
+
+	r.wgoutputworker.Wait()
+
+	return nil
+}
+
+func (r *Runner) HandleOutput() {
+	defer r.wgoutputworker.Done()
+
 	// setup output
 	var foutput *os.File
 	if r.options.OutputFile != "" {
 		var err error
-		foutput, err = os.OpenFile(r.options.Hosts, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0664)
+		foutput, err = os.Create(r.options.Hosts)
 		if err != nil {
-			return err
+			gologger.Fatalf("%s\n", err)
 		}
 	} else {
 		foutput = os.Stdout
 	}
 	defer foutput.Close()
 
-	// writer worker
-	wgwriter.Add(1)
-	writequeue := make(chan string)
-	go func() {
-		defer wgwriter.Done()
+	var w *bufio.Writer
+	if r.options.OutputFile != "" {
+		w = bufio.NewWriter(foutput)
+		defer w.Flush()
+	}
 
-		// uses a buffer to write to file
+	for item := range r.outputchan {
 		if r.options.OutputFile != "" {
-			w := bufio.NewWriter(foutput)
-			defer w.Flush()
-
-			for item := range writequeue {
-				w.WriteString(item)
-			}
-			return
-		}
-
-		// otherwise writes sequentially to stdout
-		for item := range writequeue {
+			// uses a buffer to write to file
+			w.WriteString(item)
+		} else {
+			// otherwise writes sequentially to stdout
 			fmt.Fprintf(foutput, "%s", item)
 		}
-	}()
+	}
+}
 
-	sc := bufio.NewScanner(f)
-	for sc.Scan() {
-		wg.Add()
+func (r *Runner) startWorkers() {
+	// output worker
+	r.wgoutputworker.Add(1)
+	go r.HandleOutput()
 
-		go func(domain string) {
-			defer wg.Done()
+	// resolve workers
+	for i := 0; i < r.options.Threads; i++ {
+		r.wgresolveworkers.Add(1)
+		go r.worker()
+	}
+}
 
-			if isURL(domain) {
-				domain = extractDomain(domain)
+func (r *Runner) worker() {
+	defer r.wgresolveworkers.Done()
+
+	for domain := range r.workerchan {
+		if isURL(domain) {
+			domain = extractDomain(domain)
+		}
+
+		if rs, rawResp, err := r.dnsx.LookupRaw(domain); err == nil {
+			if r.options.Raw {
+				r.outputchan <- "\n" + rawResp
+				continue
 			}
-
-			if rs, rawResp, err := r.dnsx.LookupRaw(domain); err == nil {
-				if r.options.Raw {
-					writequeue <- "\n" + rawResp
-					return
-				}
-				for _, rr := range rs {
-					tokens := strings.Split(rr, "\t")
-					ip := tokens[len(tokens)-1]
-					switch r.options.OutputFormat {
-					case "ip":
-						writequeue <- fmt.Sprintln(ip)
-					case "domain":
-						writequeue <- fmt.Sprintln(domain)
-					case "simple":
-						writequeue <- fmt.Sprintf("%s %s\n", domain, ip)
-					case "response":
-						writequeue <- fmt.Sprintln(r)
-					case "full":
-						writequeue <- fmt.Sprintf("%s %s\n", domain, rr)
-					case "json":
-						jsonl := JsonLine{Domain: domain, Response: rr, IP: ip}
-						if jsonls, err := json.Marshal(jsonl); err == nil {
-							writequeue <- fmt.Sprintln(string(jsonls))
-						}
+			for _, rr := range rs {
+				tokens := strings.Split(rr, "\t")
+				ip := tokens[len(tokens)-1]
+				switch r.options.OutputFormat {
+				case "ip":
+					r.outputchan <- fmt.Sprintln(ip)
+				case "domain":
+					r.outputchan <- fmt.Sprintln(domain)
+				case "simple":
+					r.outputchan <- fmt.Sprintf("%s %s\n", domain, ip)
+				case "response":
+					r.outputchan <- fmt.Sprintln(r)
+				case "full":
+					r.outputchan <- fmt.Sprintf("%s %s\n", domain, rr)
+				case "json":
+					jsonl := JsonLine{Domain: domain, Response: rr, IP: ip}
+					if jsonls, err := json.Marshal(jsonl); err == nil {
+						r.outputchan <- fmt.Sprintln(string(jsonls))
 					}
 				}
 			}
-		}(sc.Text())
-
+		}
 	}
-	if err := sc.Err(); err != nil {
-		return err
-	}
-
-	wg.Wait()
-	close(writequeue)
-	wgwriter.Wait()
-
-	return nil
 }
 
 func (r *Runner) Close() {
