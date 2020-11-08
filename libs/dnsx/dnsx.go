@@ -65,3 +65,8 @@ func (d *DNSX) LookupRaw(hostname string) ([]string, string, error) {
 
 	return d.dnsClient.ResolveRaw(hostname, d.questionType)
 }
+
+// LookupRaw performs a DNS question of a specified type and return structured data
+func (d *DNSX) LookupEnrich(hostname string) (*retryabledns.DNSData, error) {
+	return d.dnsClient.ResolveEnrich(hostname, d.questionType)
+}

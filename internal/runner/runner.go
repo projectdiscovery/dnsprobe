@@ -175,6 +175,8 @@ func (r *Runner) worker() {
 					if jsonls, err := json.Marshal(jsonl); err == nil {
 						r.outputchan <- fmt.Sprintln(string(jsonls))
 					}
+				default:
+					r.outputchan <- fmt.Sprintln(ip)
 				}
 			}
 		}
