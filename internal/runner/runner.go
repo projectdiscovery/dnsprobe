@@ -2,12 +2,11 @@ package runner
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	"sync"
 
+	"github.com/miekg/dns"
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
 	"github.com/projectdiscovery/gologger"
 )
@@ -40,12 +39,36 @@ func New(options *Options) (*Runner, error) {
 		dnsxOptions.BaseResolvers = append(dnsxOptions.BaseResolvers, rs...)
 	}
 
-	questionType, err := dnsx.StringToRequestType(options.RequestType)
-	if err != nil {
-		return nil, err
+	var questionTypes []uint16
+	if options.A {
+		questionTypes = append(questionTypes, dns.TypeA)
 	}
+	if options.AAAA {
+		questionTypes = append(questionTypes, dns.TypeAAAA)
+	}
+	if options.CNAME {
+		questionTypes = append(questionTypes, dns.TypeCNAME)
+	}
+	if options.PTR {
+		questionTypes = append(questionTypes, dns.TypePTR)
+	}
+	if options.SOA {
+		questionTypes = append(questionTypes, dns.TypeSOA)
+	}
+	if options.TXT {
+		questionTypes = append(questionTypes, dns.TypeTXT)
+	}
+	if options.MX {
+		questionTypes = append(questionTypes, dns.TypeMX)
+	}
+	if options.NS {
+		questionTypes = append(questionTypes, dns.TypeNS)
+	}
+	if len(questionTypes) == 0 {
+		questionTypes = append(questionTypes, dns.TypeA)
+	}
+	dnsxOptions.QuestionTypes = questionTypes
 
-	dnsxOptions.QuestionType = questionType
 	dnsX, err := dnsx.New(dnsxOptions)
 	if err != nil {
 		return nil, err
@@ -123,10 +146,10 @@ func (r *Runner) HandleOutput() {
 	for item := range r.outputchan {
 		if r.options.OutputFile != "" {
 			// uses a buffer to write to file
-			w.WriteString(item)
+			w.WriteString(item + "\n")
 		} else {
 			// otherwise writes sequentially to stdout
-			fmt.Fprintf(foutput, "%s", item)
+			fmt.Fprintf(foutput, "%s\n", item)
 		}
 	}
 }
@@ -151,34 +174,52 @@ func (r *Runner) worker() {
 			domain = extractDomain(domain)
 		}
 
-		if rs, rawResp, err := r.dnsx.LookupRaw(domain); err == nil {
+		if dnsData, err := r.dnsx.QueryMultiple(domain); err == nil {
 			if r.options.Raw {
-				r.outputchan <- "\n" + rawResp
+				r.outputchan <- dnsData.Raw
 				continue
 			}
-			for _, rr := range rs {
-				tokens := strings.Split(rr, "\t")
-				ip := tokens[len(tokens)-1]
-				switch r.options.OutputFormat {
-				case "ip":
-					r.outputchan <- fmt.Sprintln(ip)
-				case "domain":
-					r.outputchan <- fmt.Sprintln(domain)
-				case "simple":
-					r.outputchan <- fmt.Sprintf("%s %s\n", domain, ip)
-				case "response":
-					r.outputchan <- fmt.Sprintln(r)
-				case "full":
-					r.outputchan <- fmt.Sprintf("%s %s\n", domain, rr)
-				case "json":
-					jsonl := JsonLine{Domain: domain, Response: rr, IP: ip}
-					if jsonls, err := json.Marshal(jsonl); err == nil {
-						r.outputchan <- fmt.Sprintln(string(jsonls))
-					}
-				default:
-					r.outputchan <- fmt.Sprintln(ip)
-				}
+			if r.options.JSON {
+				jsons, _ := dnsData.JSON()
+				r.outputchan <- jsons
+				continue
 			}
+			if r.options.A {
+				r.outputRecordType(domain, dnsData.A)
+			}
+			if r.options.AAAA {
+				r.outputRecordType(domain, dnsData.AAAA)
+			}
+			if r.options.CNAME {
+				r.outputRecordType(domain, dnsData.CNAME)
+			}
+			if r.options.PTR {
+				r.outputRecordType(domain, dnsData.PTR)
+			}
+			if r.options.MX {
+				r.outputRecordType(domain, dnsData.MX)
+			}
+			if r.options.NS {
+				r.outputRecordType(domain, dnsData.NS)
+			}
+			if r.options.SOA {
+				r.outputRecordType(domain, dnsData.SOA)
+			}
+			if r.options.TXT {
+				r.outputRecordType(domain, dnsData.TXT)
+			}
+		}
+	}
+}
+
+func (r *Runner) outputRecordType(domain string, items []string) {
+	for _, item := range items {
+		if r.options.ResponseOnly {
+			r.outputchan <- item
+		} else if r.options.Response {
+			r.outputchan <- domain + " [" + item + "]"
+		} else {
+			r.outputchan <- item
 		}
 	}
 }

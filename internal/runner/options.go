@@ -20,6 +20,17 @@ type Options struct {
 	Silent       bool
 	Verbose      bool
 	Version      bool
+	Response     bool
+	ResponseOnly bool
+	A            bool
+	AAAA         bool
+	NS           bool
+	CNAME        bool
+	PTR          bool
+	MX           bool
+	SOA          bool
+	TXT          bool
+	JSON         bool
 }
 
 // ParseOptions parses the command line options for application
@@ -37,6 +48,17 @@ func ParseOptions() *Options {
 	flag.BoolVar(&options.Silent, "silent", false, "Silent output")
 	flag.BoolVar(&options.Verbose, "verbose", false, "Verbose output")
 	flag.BoolVar(&options.Version, "version", false, "Version")
+	flag.BoolVar(&options.Response, "resp", false, "Print response value")
+	flag.BoolVar(&options.ResponseOnly, "resp-only", false, "Print response only value")
+	flag.BoolVar(&options.A, "A", false, "A")
+	flag.BoolVar(&options.AAAA, "AAAA", false, "AAAA")
+	flag.BoolVar(&options.NS, "NS", false, "NS")
+	flag.BoolVar(&options.CNAME, "CNAME", false, "CNAME")
+	flag.BoolVar(&options.PTR, "PTR", false, "PTR")
+	flag.BoolVar(&options.MX, "MX", false, "MX")
+	flag.BoolVar(&options.SOA, "SOA", false, "SOA")
+	flag.BoolVar(&options.TXT, "TXT", false, "TXT")
+	flag.BoolVar(&options.JSON, "json", false, "JSON output")
 
 	flag.Parse()
 
