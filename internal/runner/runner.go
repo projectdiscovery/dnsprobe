@@ -79,6 +79,7 @@ func New(options *Options) (*Runner, error) {
 		questionTypes = append(questionTypes, dns.TypeNS)
 	}
 	if len(questionTypes) == 0 {
+		options.A = true
 		questionTypes = append(questionTypes, dns.TypeA)
 	}
 	dnsxOptions.QuestionTypes = questionTypes
