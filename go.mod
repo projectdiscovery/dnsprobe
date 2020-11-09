@@ -2,6 +2,8 @@ module github.com/projectdiscovery/dnsx
 
 go 1.14
 
+replace github.com/projectdiscovery/retryabledns => /home/marco/go/src/github.com/projectdiscovery/retryabledns
+
 require (
 	github.com/miekg/dns v1.1.35
 	github.com/projectdiscovery/gologger v1.0.1
