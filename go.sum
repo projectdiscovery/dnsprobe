@@ -13,6 +13,8 @@ github.com/projectdiscovery/retryabledns v1.0.5-0.20201108213411-c886e5c3e926 h1
 github.com/projectdiscovery/retryabledns v1.0.5-0.20201108213411-c886e5c3e926/go.mod h1:/UzJn4I+cPdQl6pKiiQfvVAT636YZvJQYZhYhGB0dUQ=
 github.com/projectdiscovery/retryabledns v1.0.5-0.20201109183129-577d2b95dea4 h1:9GYOq1Yc+JlhUBm1vNlOAhJz7Ld43/KCiszSJrK29pQ=
 github.com/projectdiscovery/retryabledns v1.0.5-0.20201109183129-577d2b95dea4/go.mod h1:/UzJn4I+cPdQl6pKiiQfvVAT636YZvJQYZhYhGB0dUQ=
+github.com/projectdiscovery/retryabledns v1.0.5-0.20201109220805-cead885aba17 h1:70d4IzHGYEHFOh4qLCb0a9MbpWR7zXOMI1BGgz1SgyU=
+github.com/projectdiscovery/retryabledns v1.0.5-0.20201109220805-cead885aba17/go.mod h1:/UzJn4I+cPdQl6pKiiQfvVAT636YZvJQYZhYhGB0dUQ=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.5.1 h1:nOGnQDM7FYENwehXlg/kFVnos3rEvtKTjRvOWSzb6H4=
 github.com/stretchr/testify v1.5.1/go.mod h1:5W2xD1RspED5o8YsWQXVCued0rvSQ+mT+I5cxcmMvtA=
