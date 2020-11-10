@@ -10,6 +10,8 @@ import (
 	"github.com/miekg/dns"
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
 	"github.com/projectdiscovery/gologger"
+	"github.com/projectdiscovery/hmap/store/hybrid"
+	retryabledns "github.com/projectdiscovery/retryabledns"
 	"go.uber.org/ratelimit"
 )
 
@@ -25,9 +27,13 @@ type Runner struct {
 	dnsx             *dnsx.DNSX
 	wgoutputworker   *sync.WaitGroup
 	wgresolveworkers *sync.WaitGroup
+	wgwildcardworker *sync.WaitGroup
 	workerchan       chan string
 	outputchan       chan string
+	wildcardchan     chan struct{}
 	limiter          ratelimit.Limiter
+	hm               *hybrid.HybridMap
+	hmmux            sync.RWMutex
 }
 
 func New(options *Options) (*Runner, error) {
@@ -78,7 +84,8 @@ func New(options *Options) (*Runner, error) {
 	if options.NS {
 		questionTypes = append(questionTypes, dns.TypeNS)
 	}
-	if len(questionTypes) == 0 {
+	// If no option is specified or wildcard filter has been requested use query type A
+	if len(questionTypes) == 0 || options.FilterWildcard {
 		options.A = true
 		questionTypes = append(questionTypes, dns.TypeA)
 	}
@@ -94,14 +101,26 @@ func New(options *Options) (*Runner, error) {
 		limiter = ratelimit.New(options.RateLimit)
 	}
 
+	var hm *hybrid.HybridMap
+	if options.FilterWildcard {
+		var err error
+		hm, err = hybrid.New(hybrid.DefaultDiskOptions)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	r := Runner{
 		options:          options,
 		dnsx:             dnsX,
 		wgoutputworker:   &sync.WaitGroup{},
 		wgresolveworkers: &sync.WaitGroup{},
+		wgwildcardworker: &sync.WaitGroup{},
 		workerchan:       make(chan string),
 		outputchan:       make(chan string),
+		wildcardchan:     make(chan struct{}),
 		limiter:          limiter,
+		hm:               hm,
 	}
 
 	return &r, nil
@@ -113,7 +132,7 @@ func (r *Runner) Run() error {
 	stat, _ := os.Stdin.Stat()
 	if r.options.Hosts != "" {
 		var err error
-		f, err = os.OpenFile(r.options.Hosts, os.O_RDONLY, os.ModePerm)
+		f, err = os.Open(r.options.Hosts)
 		if err != nil {
 			return err
 		}
@@ -138,6 +157,9 @@ func (r *Runner) Run() error {
 	close(r.outputchan)
 
 	r.wgoutputworker.Wait()
+
+	r.wildcardchan <- struct{}{}
+	r.wgwildcardworker.Wait()
 
 	return nil
 }
@@ -185,6 +207,10 @@ func (r *Runner) startWorkers() {
 		r.wgresolveworkers.Add(1)
 		go r.worker()
 	}
+
+	// wildcard worker
+	r.wgwildcardworker.Add(1)
+	go r.wildcardWorker()
 }
 
 func (r *Runner) worker() {
@@ -197,6 +223,11 @@ func (r *Runner) worker() {
 		r.limiter.Take()
 		dnsData, err := r.dnsx.QueryMultiple(domain)
 		if err == nil {
+			// if wildcard filtering just store the data
+			if r.options.FilterWildcard {
+				r.storeDNSData(dnsData)
+				continue
+			}
 			if r.options.Raw {
 				r.outputchan <- dnsData.Raw
 				continue
@@ -248,6 +279,55 @@ func (r *Runner) outputRecordType(domain string, items []string) {
 	}
 }
 
-func (r *Runner) Close() {
+func (r *Runner) storeDNSData(dnsdata *retryabledns.DNSData) error {
+	r.hmmux.Lock()
+	defer r.hmmux.Unlock()
 
+	_, ok := r.hm.Get(dnsdata.Domain)
+	// already handled
+	if ok {
+		return fmt.Errorf("Item %s already present", dnsdata.Domain)
+	}
+	data, err := dnsdata.Marshal()
+	if err != nil {
+		return err
+	}
+	return r.hm.Set(dnsdata.Domain, data)
+}
+
+func (r *Runner) Close() {
+	if r.hm != nil {
+		r.hm.Close()
+	}
+}
+
+// TODO - wip - just ignore
+func (r *Runner) wildcardWorker() {
+	defer r.wgwildcardworker.Done()
+
+	<-r.wildcardchan
+
+	if r.hm == nil {
+		return
+	}
+
+	ipDomain := make(map[string]map[string]struct{})
+
+	r.hm.Scan(func(k, v []byte) error {
+		var dnsdata retryabledns.DNSData
+		err := dnsdata.Unmarshal(v)
+		if err != nil {
+			return err
+		}
+
+		for _, a := range dnsdata.A {
+			_, ok := ipDomain[a]
+			if !ok {
+				ipDomain[a] = make(map[string]struct{})
+			}
+			ipDomain[a][string(k)] = struct{}{}
+		}
+
+		return nil
+	})
 }
