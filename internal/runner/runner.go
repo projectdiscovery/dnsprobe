@@ -171,7 +171,7 @@ func (r *Runner) HandleOutput() {
 	var foutput *os.File
 	if r.options.OutputFile != "" {
 		var err error
-		foutput, err = os.Create(r.options.Hosts)
+		foutput, err = os.Create(r.options.OutputFile)
 		if err != nil {
 			gologger.Fatalf("%s\n", err)
 		}
@@ -330,4 +330,5 @@ func (r *Runner) wildcardWorker() {
 
 		return nil
 	})
+
 }
