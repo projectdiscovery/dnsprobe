@@ -3,15 +3,15 @@ package runner
 import "github.com/projectdiscovery/gologger"
 
 const banner = `
-     __            
- ___/ /__  _____ __
-/ _  / _ \(_-<\ \ /
-\_,_/_//_/___/_\_\ 
-																					 
+      _             __  __
+   __| | _ __   ___ \ \/ /
+  / _' || '_ \ / __| \  / 
+ | (_| || | | |\__ \ /  \ 
+  \__,_||_| |_||___//_/\_\ v2.0
 `
 
 // Version is the current version of dnsx
-const Version = `0.0.1`
+const Version = `2.0.0`
 
 // showBanner is used to show the banner to the user
 func showBanner() {
