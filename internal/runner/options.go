@@ -41,7 +41,7 @@ func ParseOptions() *Options {
 	flag.StringVar(&options.Resolvers, "r", "", "List of resolvers (file or command separated)")
 	flag.StringVar(&options.Hosts, "l", "", "File input with list of subdomains")
 	flag.IntVar(&options.Threads, "t", 250, "Number of concurrent threads to make")
-	flag.IntVar(&options.Retries, "retry", 1, "Number of DNS retries (default 1)")
+	flag.IntVar(&options.Retries, "retry", 1, "Number of DNS retries")
 	flag.IntVar(&options.RateLimit, "rate-limit", -1, "Number of DNS request/second")
 	flag.StringVar(&options.OutputFile, "o", "", "File to write output to (optional)")
 	flag.BoolVar(&options.Raw, "raw", false, "Operates like dig")
@@ -59,9 +59,9 @@ func ParseOptions() *Options {
 	flag.BoolVar(&options.SOA, "SOA", false, "Query SOA record")
 	flag.BoolVar(&options.TXT, "TXT", false, "Query TXT record")
 	flag.BoolVar(&options.JSON, "json", false, "JSON output")
-	flag.IntVar(&options.WildcardThreshold, "wildcard-threshold", 5, "Filter Threshold")
-	flag.BoolVar(&options.FilterWildcard, "filter-wildcard", false, "Filter Wildcard (only one top level domain and ignores other flags)")
-	flag.StringVar(&options.Domain, "wildcard-domain", "", "Top level domain for filtering wildcard")
+	flag.IntVar(&options.WildcardThreshold, "wt", 5, "Wildcard Filter Threshold")
+	flag.BoolVar(&options.FilterWildcard, "fw", false, "Filter Wildcard (only one top level domain and ignores other flags)")
+	flag.StringVar(&options.Domain, "d", "", "Top level domain for filtering wildcard")
 
 	flag.Parse()
 
