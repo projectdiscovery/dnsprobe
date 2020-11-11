@@ -8,29 +8,31 @@ import (
 )
 
 type Options struct {
-	Resolvers      string
-	Hosts          string
-	Threads        int
-	RateLimit      int
-	Retries        int
-	OutputFormat   string
-	OutputFile     string
-	Raw            bool
-	Silent         bool
-	Verbose        bool
-	Version        bool
-	Response       bool
-	ResponseOnly   bool
-	A              bool
-	AAAA           bool
-	NS             bool
-	CNAME          bool
-	PTR            bool
-	MX             bool
-	SOA            bool
-	TXT            bool
-	JSON           bool
-	FilterWildcard bool
+	Resolvers         string
+	Hosts             string
+	Threads           int
+	RateLimit         int
+	Retries           int
+	OutputFormat      string
+	OutputFile        string
+	Raw               bool
+	Silent            bool
+	Verbose           bool
+	Version           bool
+	Response          bool
+	ResponseOnly      bool
+	A                 bool
+	AAAA              bool
+	NS                bool
+	CNAME             bool
+	PTR               bool
+	MX                bool
+	SOA               bool
+	TXT               bool
+	JSON              bool
+	WildcardThreshold int
+	FilterWildcard    bool
+	Domain            string
 }
 
 // ParseOptions parses the command line options for application
@@ -57,7 +59,9 @@ func ParseOptions() *Options {
 	flag.BoolVar(&options.SOA, "SOA", false, "Query SOA record")
 	flag.BoolVar(&options.TXT, "TXT", false, "Query TXT record")
 	flag.BoolVar(&options.JSON, "json", false, "JSON output")
+	flag.IntVar(&options.WildcardThreshold, "wildcard-threshold", 5, "Filter Threshold")
 	flag.BoolVar(&options.FilterWildcard, "filter-wildcard", false, "Filter Wildcard (only one top level domain and ignores other flags)")
+	flag.StringVar(&options.Domain, "wildcard-domain", "", "Top level domain for filtering wildcard")
 
 	flag.Parse()
 

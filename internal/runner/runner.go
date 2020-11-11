@@ -3,6 +3,7 @@ package runner
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"sync"
@@ -311,8 +312,10 @@ func (r *Runner) wildcardWorker() {
 		return
 	}
 
+	wildcards := make(map[string]struct{})
 	ipDomain := make(map[string]map[string]struct{})
 
+	// prepare in memory structure similarly to shuffledns
 	r.hm.Scan(func(k, v []byte) error {
 		var dnsdata retryabledns.DNSData
 		err := dnsdata.Unmarshal(v)
@@ -330,5 +333,43 @@ func (r *Runner) wildcardWorker() {
 
 		return nil
 	})
+
+	// process all items
+	for A, hosts := range ipDomain {
+		// We've stumbled upon a wildcard, just ignore it.
+		if _, ok := wildcards[A]; ok {
+			continue
+		}
+
+		// Perform wildcard detection on the ip, if an IP is found in the wildcard
+		// we add it to the wildcard map so that further runs don't require such filtering again.
+		if len(hosts) >= r.options.WildcardThreshold {
+			for host := range hosts {
+				isWildcard, ips := r.IsWildcard(host)
+				if len(ips) > 0 {
+					for ip := range ips {
+						// we add the single ip to the wildcard list
+						wildcards[ip] = struct{}{}
+					}
+				}
+
+				if isWildcard {
+					// we also mark the original ip as wildcard, since at least once it resolved to this host
+					wildcards[A] = struct{}{}
+					break
+				}
+			}
+			continue
+		}
+	}
+
+	// print out valid ones for testing purposes only
+	for A, hosts := range ipDomain {
+		if _, ok := wildcards[A]; !ok {
+			for host := range hosts {
+				log.Println(host)
+			}
+		}
+	}
 
 }
