@@ -148,7 +148,7 @@ func (r *Runner) Run() error {
 
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
-		r.workerchan <- sc.Text()
+		r.workerchan <- strings.TrimSpace(sc.Text())
 	}
 
 	close(r.workerchan)
