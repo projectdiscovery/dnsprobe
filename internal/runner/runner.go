@@ -3,7 +3,6 @@ package runner
 import (
 	"bufio"
 	"fmt"
-	"log"
 	"os"
 	"strings"
 	"sync"
@@ -118,7 +117,6 @@ func New(options *Options) (*Runner, error) {
 		wgresolveworkers: &sync.WaitGroup{},
 		wgwildcardworker: &sync.WaitGroup{},
 		workerchan:       make(chan string),
-		outputchan:       make(chan string),
 		wildcardchan:     make(chan struct{}),
 		limiter:          limiter,
 		hm:               hm,
@@ -152,15 +150,23 @@ func (r *Runner) Run() error {
 	}
 
 	close(r.workerchan)
-
 	r.wgresolveworkers.Wait()
 
 	close(r.outputchan)
-
 	r.wgoutputworker.Wait()
 
+	// we need to restart output
+	if r.options.FilterWildcard {
+		r.startOutputWorker()
+	}
 	r.wildcardchan <- struct{}{}
 	r.wgwildcardworker.Wait()
+
+	// we need to restart output
+	if r.options.FilterWildcard {
+		close(r.outputchan)
+		r.wgoutputworker.Wait()
+	}
 
 	return nil
 }
@@ -169,39 +175,39 @@ func (r *Runner) HandleOutput() {
 	defer r.wgoutputworker.Done()
 
 	// setup output
-	var foutput *os.File
+	var (
+		foutput *os.File
+		w       *bufio.Writer
+	)
 	if r.options.OutputFile != "" {
 		var err error
 		foutput, err = os.Create(r.options.OutputFile)
 		if err != nil {
 			gologger.Fatalf("%s\n", err)
 		}
-	} else {
-		foutput = os.Stdout
-	}
-	defer foutput.Close()
-
-	var w *bufio.Writer
-	if r.options.OutputFile != "" {
+		defer foutput.Close()
 		w = bufio.NewWriter(foutput)
 		defer w.Flush()
 	}
-
 	for item := range r.outputchan {
 		if r.options.OutputFile != "" {
 			// uses a buffer to write to file
 			w.WriteString(item + "\n")
-		} else {
-			// otherwise writes sequentially to stdout
-			fmt.Fprintf(foutput, "%s\n", item)
 		}
+		// otherwise writes sequentially to stdout
+		gologger.Silentf("%s\n", item)
 	}
 }
 
-func (r *Runner) startWorkers() {
+func (r *Runner) startOutputWorker() {
 	// output worker
+	r.outputchan = make(chan string)
 	r.wgoutputworker.Add(1)
 	go r.HandleOutput()
+}
+
+func (r *Runner) startWorkers() {
+	r.startOutputWorker()
 
 	// resolve workers
 	for i := 0; i < r.options.Threads; i++ {
@@ -363,11 +369,16 @@ func (r *Runner) wildcardWorker() {
 		}
 	}
 
+	seen := make(map[string]struct{})
 	// print out valid ones for testing purposes only
 	for A, hosts := range ipDomain {
 		if _, ok := wildcards[A]; !ok {
 			for host := range hosts {
-				log.Println(host)
+				if _, ok := seen[host]; ok {
+					continue
+				}
+				seen[host] = struct{}{}
+				r.outputchan <- host
 			}
 		}
 	}
