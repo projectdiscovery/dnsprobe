@@ -60,7 +60,7 @@ func ParseOptions() *Options {
 	flag.BoolVar(&options.TXT, "TXT", false, "Query TXT record")
 	flag.BoolVar(&options.JSON, "json", false, "JSON output")
 	flag.IntVar(&options.WildcardThreshold, "wt", 5, "Wildcard Filter Threshold")
-	flag.BoolVar(&options.FilterWildcard, "wf", false, "Wildcard filter filtering")
+	flag.BoolVar(&options.FilterWildcard, "wf", false, "Wildcard filtering (other flags will be ignored")
 	flag.StringVar(&options.Domain, "wd", "", "Wildcard Top level domain for filtering")
 
 	flag.Parse()
