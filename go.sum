@@ -37,6 +37,8 @@ github.com/projectdiscovery/retryabledns v1.0.5-0.20201110214847-da4c2ff1d423 h1
 github.com/projectdiscovery/retryabledns v1.0.5-0.20201110214847-da4c2ff1d423/go.mod h1:/UzJn4I+cPdQl6pKiiQfvVAT636YZvJQYZhYhGB0dUQ=
 github.com/projectdiscovery/retryabledns v1.0.5-0.20201112173745-303a7b0e86f9 h1:kVJGl4MYgvOijwxRzQkcVwNYhUCVRduxY7LN0U/B33s=
 github.com/projectdiscovery/retryabledns v1.0.5-0.20201112173745-303a7b0e86f9/go.mod h1:/UzJn4I+cPdQl6pKiiQfvVAT636YZvJQYZhYhGB0dUQ=
+github.com/projectdiscovery/retryabledns v1.0.5-0.20201112175234-f75c48070508 h1:f3DB+5nw/OOIhM6IZTK2Jzv1n0e1ultcdTqViYEgthQ=
+github.com/projectdiscovery/retryabledns v1.0.5-0.20201112175234-f75c48070508/go.mod h1:/UzJn4I+cPdQl6pKiiQfvVAT636YZvJQYZhYhGB0dUQ=
 github.com/rs/xid v1.2.1 h1:mhH9Nq+C1fY2l1XIpgxIiUOfNpRBYH1kKcr+qfKgjRc=
 github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=

@@ -355,7 +355,7 @@ func (r *Runner) storeDNSData(dnsdata *retryabledns.DNSData) error {
 	if err != nil {
 		return err
 	}
-	return r.hm.Set(dnsdata.Domain, data)
+	return r.hm.Set(dnsdata.Host, data)
 }
 
 func (r *Runner) Close() {
