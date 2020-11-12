@@ -33,6 +33,7 @@ type Options struct {
 	WildcardThreshold int
 	FilterWildcard    bool
 	Domain            string
+	PBar              bool
 }
 
 // ParseOptions parses the command line options for application
@@ -62,6 +63,7 @@ func ParseOptions() *Options {
 	flag.IntVar(&options.WildcardThreshold, "wt", 5, "Wildcard Filter Threshold")
 	flag.BoolVar(&options.FilterWildcard, "fw", false, "Filter Wildcard (only one top level domain and ignores other flags)")
 	flag.StringVar(&options.Domain, "d", "", "Top level domain for filtering wildcard")
+	flag.BoolVar(&options.PBar, "pbar", false, "Progress Bar")
 
 	flag.Parse()
 
@@ -81,7 +83,9 @@ func ParseOptions() *Options {
 }
 
 func (options *Options) validateOptions() {
-
+	if options.Response && options.ResponseOnly {
+		gologger.Fatalf("resp and resp-only can't be used at the same time")
+	}
 }
 
 // configureOutput configures the output on the screen

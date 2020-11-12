@@ -6,20 +6,16 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/miekg/dns"
+	"github.com/projectdiscovery/clistats"
 	"github.com/projectdiscovery/dnsx/libs/dnsx"
 	"github.com/projectdiscovery/gologger"
 	"github.com/projectdiscovery/hmap/store/hybrid"
 	retryabledns "github.com/projectdiscovery/retryabledns"
 	"go.uber.org/ratelimit"
 )
-
-type JsonLine struct {
-	Domain   string
-	Response string
-	IP       string
-}
 
 // Runner is a client for running the enumeration process.
 type Runner struct {
@@ -33,7 +29,7 @@ type Runner struct {
 	wildcardchan     chan struct{}
 	limiter          ratelimit.Limiter
 	hm               *hybrid.HybridMap
-	hmmux            sync.RWMutex
+	stats            clistats.StatisticsClient
 }
 
 func New(options *Options) (*Runner, error) {
@@ -101,13 +97,9 @@ func New(options *Options) (*Runner, error) {
 		limiter = ratelimit.New(options.RateLimit)
 	}
 
-	var hm *hybrid.HybridMap
-	if options.FilterWildcard {
-		var err error
-		hm, err = hybrid.New(hybrid.DefaultDiskOptions)
-		if err != nil {
-			return nil, err
-		}
+	hm, err := hybrid.New(hybrid.DefaultDiskOptions)
+	if err != nil {
+		return nil, err
 	}
 
 	r := Runner{
@@ -120,12 +112,22 @@ func New(options *Options) (*Runner, error) {
 		wildcardchan:     make(chan struct{}),
 		limiter:          limiter,
 		hm:               hm,
+		stats:            clistats.New(),
 	}
 
 	return &r, nil
 }
 
-func (r *Runner) Run() error {
+func (r *Runner) InputWorker() {
+	r.hm.Scan(func(k, _ []byte) error {
+		r.stats.IncrementCounter("requests", len(r.dnsx.QuestionTypes))
+		r.workerchan <- string(k)
+		return nil
+	})
+	close(r.workerchan)
+}
+
+func (r *Runner) prepareInput() error {
 	// process file if specified
 	var f *os.File
 	stat, _ := os.Stdin.Stat()
@@ -142,14 +144,79 @@ func (r *Runner) Run() error {
 		return fmt.Errorf("hosts file or stdin not provided")
 	}
 
-	r.startWorkers()
-
+	numHosts := 0
 	sc := bufio.NewScanner(f)
 	for sc.Scan() {
-		r.workerchan <- strings.TrimSpace(sc.Text())
+		host := strings.TrimSpace(sc.Text())
+		// Used just to get the exact number of targets
+		if _, ok := r.hm.Get(host); ok {
+			continue
+		}
+		numHosts++
+		// nolint:errcheck
+		r.hm.Set(host, nil)
 	}
 
-	close(r.workerchan)
+	var tickDuration time.Duration
+	tickDuration = -1
+	if r.options.PBar {
+		tickDuration = time.Duration(tickDuration) * time.Second
+	}
+
+	r.stats.AddStatic("hosts", numHosts)
+	r.stats.AddStatic("startedAt", time.Now())
+	r.stats.AddCounter("requests", 0)
+	r.stats.AddCounter("total", uint64(numHosts*len(r.dnsx.QuestionTypes)))
+	// nolint:errcheck
+	r.stats.Start(makePrintCallback(), tickDuration)
+
+	return nil
+}
+
+func makePrintCallback() func(stats clistats.StatisticsClient) {
+	builder := &strings.Builder{}
+	return func(stats clistats.StatisticsClient) {
+		builder.WriteRune('[')
+		startedAt, _ := stats.GetStatic("startedAt")
+		duration := time.Since(startedAt.(time.Time))
+		builder.WriteString(fmtDuration(duration))
+		builder.WriteRune(']')
+
+		hosts, _ := stats.GetStatic("hosts")
+		builder.WriteString(" | Hosts: ")
+		builder.WriteString(clistats.String(hosts))
+
+		requests, _ := stats.GetCounter("requests")
+		total, _ := stats.GetCounter("total")
+
+		builder.WriteString(" | RPS: ")
+		builder.WriteString(clistats.String(uint64(float64(requests) / duration.Seconds())))
+
+		builder.WriteString(" | Requests: ")
+		builder.WriteString(clistats.String(requests))
+		builder.WriteRune('/')
+		builder.WriteString(clistats.String(total))
+		builder.WriteRune(' ')
+		builder.WriteRune('(')
+		//nolint:gomnd // this is not a magic number
+		builder.WriteString(clistats.String(uint64(float64(requests) / float64(total) * 100.0)))
+		builder.WriteRune('%')
+		builder.WriteRune(')')
+		builder.WriteRune('\n')
+
+		gologger.Printf("%s", builder.String())
+		builder.Reset()
+	}
+}
+
+func (r *Runner) Run() error {
+	err := r.prepareInput()
+	if err != nil {
+		return err
+	}
+
+	r.startWorkers()
+
 	r.wgresolveworkers.Wait()
 
 	close(r.outputchan)
@@ -162,7 +229,7 @@ func (r *Runner) Run() error {
 	r.wildcardchan <- struct{}{}
 	r.wgwildcardworker.Wait()
 
-	// we need to restart output
+	// waiting output worker
 	if r.options.FilterWildcard {
 		close(r.outputchan)
 		r.wgoutputworker.Wait()
@@ -192,6 +259,7 @@ func (r *Runner) HandleOutput() {
 	for item := range r.outputchan {
 		if r.options.OutputFile != "" {
 			// uses a buffer to write to file
+			// nolint:errcheck
 			w.WriteString(item + "\n")
 		}
 		// otherwise writes sequentially to stdout
@@ -207,8 +275,9 @@ func (r *Runner) startOutputWorker() {
 }
 
 func (r *Runner) startWorkers() {
-	r.startOutputWorker()
+	go r.InputWorker()
 
+	r.startOutputWorker()
 	// resolve workers
 	for i := 0; i < r.options.Threads; i++ {
 		r.wgresolveworkers.Add(1)
@@ -232,6 +301,7 @@ func (r *Runner) worker() {
 		if err == nil {
 			// if wildcard filtering just store the data
 			if r.options.FilterWildcard {
+				// nolint:errcheck
 				r.storeDNSData(dnsData)
 				continue
 			}
@@ -287,14 +357,6 @@ func (r *Runner) outputRecordType(domain string, items []string) {
 }
 
 func (r *Runner) storeDNSData(dnsdata *retryabledns.DNSData) error {
-	r.hmmux.Lock()
-	defer r.hmmux.Unlock()
-
-	_, ok := r.hm.Get(dnsdata.Domain)
-	// already handled
-	if ok {
-		return fmt.Errorf("Item %s already present", dnsdata.Domain)
-	}
 	data, err := dnsdata.Marshal()
 	if err != nil {
 		return err
@@ -303,9 +365,9 @@ func (r *Runner) storeDNSData(dnsdata *retryabledns.DNSData) error {
 }
 
 func (r *Runner) Close() {
-	if r.hm != nil {
-		r.hm.Close()
-	}
+	// nolint:errcheck
+	r.stats.Stop()
+	r.hm.Close()
 }
 
 // TODO - wip - just ignore

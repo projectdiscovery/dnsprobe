@@ -14,6 +14,7 @@ func main() {
 		gologger.Fatalf("Could not create runner: %s\n", err)
 	}
 
+	// nolint:errcheck
 	runner.Run()
 	runner.Close()
 }

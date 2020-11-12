@@ -10,7 +10,7 @@ import (
 // DNSX is structure to perform dns lookups
 type DNSX struct {
 	dnsClient     *retryabledns.Client
-	questionTypes []uint16
+	QuestionTypes []uint16
 }
 
 // Options contains configuration options
@@ -40,7 +40,7 @@ var DefaultResolvers = []string{
 func New(options Options) (*DNSX, error) {
 	dnsClient := retryabledns.New(options.BaseResolvers, options.MaxRetries)
 
-	return &DNSX{dnsClient: dnsClient, questionTypes: options.QuestionTypes}, nil
+	return &DNSX{dnsClient: dnsClient, QuestionTypes: options.QuestionTypes}, nil
 }
 
 // Lookup performs a DNS A question and returns corresponding IPs
@@ -59,10 +59,10 @@ func (d *DNSX) Lookup(hostname string) ([]string, error) {
 
 // QueryOne performs a DNS question of a specified type and returns raw responses
 func (d *DNSX) QueryOne(hostname string) (*retryabledns.DNSData, error) {
-	return d.dnsClient.Query(hostname, d.questionTypes[0])
+	return d.dnsClient.Query(hostname, d.QuestionTypes[0])
 }
 
 // QueryMultiple performs a DNS question of the specified types and returns raw responses
 func (d *DNSX) QueryMultiple(hostname string) (*retryabledns.DNSData, error) {
-	return d.dnsClient.QueryMultiple(hostname, d.questionTypes)
+	return d.dnsClient.QueryMultiple(hostname, d.QuestionTypes)
 }
