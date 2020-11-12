@@ -81,7 +81,7 @@ func New(options *Options) (*Runner, error) {
 		questionTypes = append(questionTypes, dns.TypeNS)
 	}
 	// If no option is specified or wildcard filter has been requested use query type A
-	if len(questionTypes) == 0 || options.FilterWildcard {
+	if len(questionTypes) == 0 || options.WildcardDomain != "" {
 		options.A = true
 		questionTypes = append(questionTypes, dns.TypeA)
 	}
@@ -217,14 +217,14 @@ func (r *Runner) Run() error {
 	r.wgoutputworker.Wait()
 
 	// we need to restart output
-	if r.options.FilterWildcard {
+	if r.options.WildcardDomain != "" {
 		r.startOutputWorker()
 	}
 	r.wildcardchan <- struct{}{}
 	r.wgwildcardworker.Wait()
 
 	// waiting output worker
-	if r.options.FilterWildcard {
+	if r.options.WildcardDomain != "" {
 		close(r.outputchan)
 		r.wgoutputworker.Wait()
 	}
@@ -294,7 +294,7 @@ func (r *Runner) worker() {
 		dnsData, err := r.dnsx.QueryMultiple(domain)
 		if err == nil {
 			// if wildcard filtering just store the data
-			if r.options.FilterWildcard {
+			if r.options.WildcardDomain != "" {
 				// nolint:errcheck
 				r.storeDNSData(dnsData)
 				continue

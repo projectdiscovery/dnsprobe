@@ -10,7 +10,7 @@ func (r *Runner) IsWildcard(host string) (bool, map[string]struct{}) {
 	orig := make(map[string]struct{})
 	wildcards := make(map[string]struct{})
 
-	subdomainPart := strings.TrimSuffix(host, "."+r.options.Domain)
+	subdomainPart := strings.TrimSuffix(host, "."+r.options.WildcardDomain)
 	subdomainTokens := strings.Split(subdomainPart, ".")
 
 	// Build an array by preallocating a slice of a length
@@ -19,10 +19,10 @@ func (r *Runner) IsWildcard(host string) (bool, map[string]struct{}) {
 	// A permutation is generated for each level of the subdomain.
 	var hosts []string
 	hosts = append(hosts, host)
-	hosts = append(hosts, xid.New().String()+"."+r.options.Domain)
+	hosts = append(hosts, xid.New().String()+"."+r.options.WildcardDomain)
 
 	for i := 0; i < len(subdomainTokens); i++ {
-		newhost := xid.New().String() + "." + strings.Join(subdomainTokens[i:], ".") + "." + r.options.Domain
+		newhost := xid.New().String() + "." + strings.Join(subdomainTokens[i:], ".") + "." + r.options.WildcardDomain
 		hosts = append(hosts, newhost)
 	}
 
