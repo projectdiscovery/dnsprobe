@@ -1,3 +1,5 @@
+### Note - This project is discontinued. New updates and fixes will be pushed to [dnsx](https://github.com/projectdiscovery/dnsx).
+
 <h1 align="left">
   <img src="static/dnsprobe-logo.png" alt="dnsprobe" width="200px"></a>
   <br>
